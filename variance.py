@@ -61,7 +61,7 @@ else:
     week_df = df_month_filtered.copy()
 
 # --- Insights ---
-st.subheader(f"📊 Promotion Sales Insights")
+st.subheader(f"📊 SAFA oud mehta Promotion Sales Insights")
 
 # Summary Table with Tran No, Start & End Dates
 summary = (
