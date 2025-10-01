@@ -63,9 +63,9 @@ else:
 # --- Insights ---
 st.subheader(f"📊 Promotion Sales Insights")
 
-# Summary Table
+# Summary Table with Tran No, Start & End Dates
 summary = (
-    week_df.groupby("Promotion Name")
+    week_df.groupby(["Tran No", "Promotion Name", "Promo_Start Date", "Promo_End Date"])
     .agg({"Sales Qty": "sum", "Sales Value": "sum"})
     .reset_index()
     .sort_values(by="Sales Value", ascending=False)
@@ -103,6 +103,6 @@ with col2:
     )
     st.plotly_chart(fig2, use_container_width=True)
 
-# --- Promotion Periods ---
-st.markdown("📅 **Promotion Periods:**")
-st.table(week_df[["Promotion Name", "Promo_Start Date", "Promo_End Date", "Sales Value"]])
+# --- Promotion Periods Table ---
+st.markdown("📅 **Promotion Details (Selected Filter):**")
+st.table(week_df[["Tran No", "Promotion Name", "Promo_Start Date", "Promo_End Date", "Sales Qty", "Sales Value"]])
