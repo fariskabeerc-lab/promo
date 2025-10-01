@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import calendar
 
 # --- Page Config ---
 st.set_page_config(page_title="Promotion Performance Dashboard", layout="wide")
@@ -9,7 +8,6 @@ st.set_page_config(page_title="Promotion Performance Dashboard", layout="wide")
 # --- Load Data Function ---
 @st.cache_data
 def load_data():
-    # Replace with your actual file path
     df = pd.read_excel("promotion AUG & SEP.Xlsx")
     df.columns = df.columns.str.strip()
 
@@ -21,8 +19,6 @@ def load_data():
     df["Month_Num"] = df["Promo_Start Date"].dt.month
     df["Month_Name"] = df["Promo_Start Date"].dt.month_name()
     df["Year"] = df["Promo_Start Date"].dt.year
-
-    # Create week of month (1st, 2nd, etc.)
     df["Week_of_Month"] = df["Promo_Start Date"].apply(lambda d: (d.day - 1) // 7 + 1)
 
     return df
@@ -34,24 +30,38 @@ df = load_data()
 st.sidebar.header("🔎 Filters")
 
 years = sorted(df["Year"].unique())
+years.insert(0, "All")
 selected_year = st.sidebar.selectbox("Select Year", years)
 
-months = df[df["Year"] == selected_year]["Month_Name"].unique().tolist()
+if selected_year != "All":
+    df_year_filtered = df[df["Year"] == selected_year]
+else:
+    df_year_filtered = df.copy()
+
+months = df_year_filtered["Month_Name"].unique().tolist()
+months.sort(key=lambda x: pd.to_datetime(x, format='%B').month)
+months.insert(0, "All")
 selected_month = st.sidebar.selectbox("Select Month", months)
 
-filtered_month_df = df[(df["Year"] == selected_year) & (df["Month_Name"] == selected_month)]
+if selected_month != "All":
+    df_month_filtered = df_year_filtered[df_year_filtered["Month_Name"] == selected_month]
+else:
+    df_month_filtered = df_year_filtered.copy()
 
-weeks = sorted(filtered_month_df["Week_of_Month"].unique())
+weeks = sorted(df_month_filtered["Week_of_Month"].unique())
 week_labels = {1: "First Week", 2: "Second Week", 3: "Third Week", 4: "Fourth Week", 5: "Fifth Week"}
 week_options = [week_labels[w] for w in weeks]
-
+week_options.insert(0, "All")
 selected_week_label = st.sidebar.selectbox("Select Week", week_options)
-selected_week = [k for k, v in week_labels.items() if v == selected_week_label][0]
 
-week_df = filtered_month_df[filtered_month_df["Week_of_Month"] == selected_week]
+if selected_week_label != "All":
+    selected_week = [k for k, v in week_labels.items() if v == selected_week_label][0]
+    week_df = df_month_filtered[df_month_filtered["Week_of_Month"] == selected_week]
+else:
+    week_df = df_month_filtered.copy()
 
 # --- Insights ---
-st.subheader(f"📊 Promotion Sales Insights - {selected_month} {selected_year}, {selected_week_label}")
+st.subheader(f"📊 Promotion Sales Insights")
 
 # Summary Table
 summary = (
@@ -94,5 +104,5 @@ with col2:
     st.plotly_chart(fig2, use_container_width=True)
 
 # --- Promotion Periods ---
-st.markdown("📅 **Promotion Periods (Selected Week):**")
+st.markdown("📅 **Promotion Periods:**")
 st.table(week_df[["Promotion Name", "Promo_Start Date", "Promo_End Date", "Sales Value"]])
